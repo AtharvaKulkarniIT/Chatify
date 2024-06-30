@@ -91,7 +91,7 @@ To start the frontend and backend servers:
 1. **Open another terminal and navigate to the server directory:**
 
    ```bash
-   cd chatify/server
+   cd Chatify/server
    ```
 
 2. **Start the backend server:**
