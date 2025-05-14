@@ -105,13 +105,6 @@ To start the frontend and backend servers:
 - Enter your unique username in each tab and start chatting.
 - Messages are displayed in real-time with different styles for your messages and others'.
 
-## Contributing
-
-Contributions are welcome! Fork the repository and submit a pull request for any features or fixes.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## UI
 **Login**
@@ -120,3 +113,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Chat page**
 ![Real-time chat](https://drive.google.com/uc?export=download&id=1EtxAVmU6Wn3b0EMuTosbbWfnFLSSZgVG)
 
+## Contributing
+
+Contributions are welcome! Fork the repository and submit a pull request for any features or fixes.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
