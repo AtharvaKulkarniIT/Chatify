@@ -1,0 +1,16 @@
+{
+  "name": "encryption-checker",
+  "version": "1.0.0",
+  "main": "check_encryption.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "node-forge": "^1.4.0",
+    "socket.io-client": "^4.8.3"
+  }
+}

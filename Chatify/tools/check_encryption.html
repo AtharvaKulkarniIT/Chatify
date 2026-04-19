@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Encryption Checker</title>
+  <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.5/dist/socket.io.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/node-forge@1.3.1/dist/forge.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f5f5f3;
+      color: #1a1a1a;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 520px;
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 1.5rem;
+    }
+
+    .card {
+      background: #fff;
+      border: 0.5px solid #ddd;
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 1rem;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    label {
+      font-size: 13px;
+      color: #666;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 8px 10px;
+      border: 0.5px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+      background: #fff;
+      color: #1a1a1a;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #888;
+      box-shadow: 0 0 0 2px rgba(0,0,0,0.06);
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 1rem;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      accent-color: #333;
+    }
+
+    .slider-val {
+      font-size: 13px;
+      font-weight: 500;
+      min-width: 28px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      border: 0.5px solid #ccc;
+      border-radius: 8px;
+      background: #fff;
+      font-size: 14px;
+      cursor: pointer;
+      color: #1a1a1a;
+      transition: background 0.15s;
+    }
+
+    button:hover { background: #f0f0ee; }
+    button:active { transform: scale(0.98); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .result-box {
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .result-safe    { background: #eaf3de; border: 0.5px solid #97c459; }
+    .result-unsafe  { background: #fcebeb; border: 0.5px solid #f09595; }
+    .result-waiting { background: #faeeda; border: 0.5px solid #FAC775; }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ccc;
+      flex-shrink: 0;
+    }
+
+    .result-safe    .status-dot { background: #3B6D11; }
+    .result-unsafe  .status-dot { background: #A32D2D; }
+    .result-waiting .status-dot { background: #854F0B; }
+
+    .result-title {
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .result-safe    .result-title { color: #3B6D11; }
+    .result-unsafe  .result-title { color: #A32D2D; }
+    .result-waiting .result-title { color: #854F0B; }
+
+    .result-detail {
+      font-size: 13px;
+      color: #555;
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+
+    .log-box {
+      background: #1a1a1a;
+      border-radius: 10px;
+      padding: 1rem;
+      font-family: monospace;
+      font-size: 12px;
+      color: #aaa;
+      min-height: 80px;
+      max-height: 200px;
+      overflow-y: auto;
+      display: none;
+      white-space: pre-wrap;
+      word-break: break-all;
+      line-height: 1.6;
+    }
+
+    .log-box .log-line { margin-bottom: 2px; }
+    .log-box .log-ok   { color: #97c459; }
+    .log-box .log-warn { color: #FAC775; }
+    .log-box .log-err  { color: #f09595; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Encryption checker</h1>
+  <p class="subtitle">Connect to your Chatify server and send a message to check if traffic is encrypted.</p>
+
+  <div class="card">
+    <div class="row">
+      <div class="field">
+        <label>server ip</label>
+        <input type="text" id="ip" value="10.29.5.120" placeholder="e.g. 10.29.5.120" />
+      </div>
+      <div class="field" style="max-width: 110px;">
+        <label>port</label>
+        <input type="number" id="port" value="3000" placeholder="3000" />
+      </div>
+    </div>
+
+    <div style="margin-bottom: 1rem;">
+      <label style="display: block; margin-bottom: 6px;">timeout</label>
+      <div class="slider-row">
+        <input type="range" id="timeout" min="5" max="60" value="15" step="1" />
+        <span class="slider-val" id="timeout-out">15s</span>
+      </div>
+    </div>
+
+    <button id="run-btn" onclick="runCheck()">Check encryption</button>
+  </div>
+
+  <div id="result-box" class="result-box">
+    <div class="result-header">
+      <span class="status-dot"></span>
+      <span class="result-title" id="result-title"></span>
+    </div>
+    <p class="result-detail" id="result-detail"></p>
+  </div>
+
+  <div id="log-box" class="log-box"></div>
+</div>
+
+<script>
+  const timeoutSlider = document.getElementById('timeout');
+  const timeoutOut = document.getElementById('timeout-out');
+  timeoutSlider.oninput = () => { timeoutOut.textContent = timeoutSlider.value + 's'; };
+
+  let activeSocket = null;
+  let activeTimer = null;
+
+  function log(msg, type) {
+    const box = document.getElementById('log-box');
+    box.style.display = 'block';
+    const line = document.createElement('div');
+    line.className = 'log-line' + (type ? ' log-' + type : '');
+    line.textContent = '> ' + msg;
+    box.appendChild(line);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function setResult(type, title, detail) {
+    const box = document.getElementById('result-box');
+    box.style.display = 'block';
+    box.className = 'result-box result-' + type;
+    document.getElementById('result-title').textContent = title;
+    document.getElementById('result-detail').textContent = detail;
+  }
+
+  function cleanup() {
+    if (activeSocket) { activeSocket.disconnect(); activeSocket = null; }
+    if (activeTimer) { clearTimeout(activeTimer); activeTimer = null; }
+    document.getElementById('run-btn').disabled = false;
+    document.getElementById('run-btn').textContent = 'Check encryption';
+  }
+
+  function runCheck() {
+    if (activeSocket) { cleanup(); return; }
+
+    const ip = document.getElementById('ip').value.trim();
+    const port = document.getElementById('port').value.trim();
+    const timeoutSecs = parseInt(timeoutSlider.value);
+    const url = 'http://' + ip + ':' + port;
+
+    document.getElementById('log-box').innerHTML = '';
+    document.getElementById('log-box').style.display = 'none';
+    document.getElementById('result-box').style.display = 'none';
+    document.getElementById('run-btn').disabled = true;
+    document.getElementById('run-btn').textContent = 'Stop';
+
+    log('Connecting to ' + url + '...');
+
+    const socket = io(url, { transports: ['websocket'] });
+    activeSocket = socket;
+    let aesKey = null;
+
+    activeTimer = setTimeout(() => {
+      log('Timed out — no message received.', 'warn');
+      setResult('waiting', 'Timed out', 'No message was received within ' + timeoutSecs + 's. Make sure you sent a message in the chat app.');
+      cleanup();
+    }, timeoutSecs * 1000);
+
+    socket.on('connect', () => {
+      log('Connected. Socket ID: ' + socket.id, 'ok');
+      setResult('waiting', 'Waiting for key exchange...', '');
+    });
+
+    socket.on('server-public-key', (pem) => {
+      log('Received server public key. Generating AES key...', 'ok');
+      aesKey = forge.random.getBytesSync(32);
+      const pubKey = forge.pki.publicKeyFromPem(pem);
+      const encrypted = forge.util.encode64(pubKey.encrypt(aesKey, 'RSA-OAEP'));
+      socket.emit('client-aes-key', encrypted);
+      log('AES key sent to server.', 'ok');
+    });
+
+    socket.on('encryption-ready', () => {
+      log('Key exchange complete. Send a message in the chat app now...', 'ok');
+      setResult('waiting', 'Send a message in the chat app now', 'Listening for incoming messages...');
+    });
+
+    socket.on('chat', (data) => {
+      log('Message received: ' + JSON.stringify(data));
+      clearTimeout(activeTimer);
+
+      const hasIV = data.iv !== undefined;
+      const base64Regex = /^[A-Za-z0-9+/=]{20,}$/;
+      const isBase64 = base64Regex.test(data.message);
+      const isPlaintext = !isBase64 && typeof data.message === 'string';
+
+      if (isPlaintext && !hasIV) {
+        log('RESULT: Plaintext detected — NOT encrypted.', 'err');
+        log('Message content: ' + data.message, 'err');
+        setResult('unsafe', 'Messages are not encrypted', 'Anyone on this network can read messages in plaintext. Sender: ' + data.sender + ' | Message: ' + data.message);
+      } else if (isBase64 && hasIV) {
+        log('Encrypted format detected (Base64 + IV).', 'ok');
+
+        setResult(
+          'safe',
+          'Messages are encrypted',
+          'RSA handshake completed and ciphertext + IV detected. Messages appear encrypted.'
+        );
+      }
+
+      cleanup();
+    });
+
+    socket.on('connect_error', (err) => {
+      log('Connection error: ' + err.message, 'err');
+      setResult('unsafe', 'Could not connect', 'Make sure the server is running at ' + url);
+      cleanup();
+    });
+  }
+</script>
+</body>
+</html>

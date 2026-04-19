@@ -15,6 +15,7 @@
     "express": "^4.19.2",
     "http": "^0.0.1-security",
     "mongoose": "^8.4.4",
+    "node-forge": "^1.4.0",
     "nodemon": "^3.1.4",
     "socket.io": "^4.7.5"
   }
