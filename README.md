@@ -14,6 +14,8 @@ The project is structured into two main folders:
 - **Real-time Messaging:** Instantly send and receive messages.
 - **Multi-User Chat :** Multiple users can login and chat.
 - **Responsive Design:** Works seamlessly across devices.
+- **LAN Hosting:** Connect and chat with others on the same network.
+- **End-to-End Encryption:** Messages are encrypted using an RSA + AES-CBC hybrid scheme, making traffic unreadable in transit.
 
 ## Technologies Used
 
@@ -25,7 +27,7 @@ The project is structured into two main folders:
   - Node.js
   - Express.js
   - Socket.IO
-
+  - node-forge (AES + RSA encryption)
 ## Installation
 
 To run this project locally, follow these steps:
@@ -81,7 +83,7 @@ To start the frontend and backend servers:
 3. **Open your browser and navigate to:**
 
    ```
-   http://localhost:3000
+   http://localhost:3001
    ```
 
    Open at least two tabs to simulate a chat room environment.
@@ -105,6 +107,19 @@ To start the frontend and backend servers:
 - Enter your unique username in each tab and start chatting.
 - Messages are displayed in real-time with different styles for your messages and others'.
 
+## Encryption
+
+This branch implements end-to-end encryption using a RSA + AES-CBC hybrid scheme:
+
+- On connection, the server shares its RSA public key with each client
+- Each client generates a random AES key, encrypts it with the server's public key, and sends it back
+- All chat messages are encrypted with AES before being sent and decrypted on arrival
+- The server never processes plaintext messages
+
+## Encryption Checker
+
+A standalone browser-based tool is included at `encryption-checker.html`. Open it in any browser, enter your server IP and port, and send a message in the chat app to audit whether traffic is encrypted or plaintext. No installation required.
+
 
 ## UI
 **Login**
@@ -120,3 +135,8 @@ Contributions are welcome! Fork the repository and submit a pull request for any
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgements
+
+- [AtharvaKulkarniIT](https://github.com/AtharvaKulkarniIT) — original author
+- [jayyant](https://github.com/jayyant) & [ismail](https://github.com/iSmiledAgain) — LAN hosting, end-to-end encryption, encryption checker tool
